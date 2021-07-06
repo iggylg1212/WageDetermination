@@ -1,0 +1,2 @@
+/outputs/berkeley_scrape.csv filter=lfs diff=lfs merge=lfs -text
+/outputs/davis_scrape.csv filter=lfs diff=lfs merge=lfs -text

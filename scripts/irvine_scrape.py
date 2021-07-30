@@ -24,7 +24,7 @@ class WebScraper(object):
         try:
             self.df = pd.read_csv('/Users/iggy1212 1/Desktop/Research/WageDetermination/outputs/irvine_scrape.csv')
         except:
-            self.df = pd.DataFrame(columns=[])
+            self.df = pd.DataFrame(columns=['Term', 'School', 'Department', 'Class Name', 'Professor 1', 'Professor 2', 'Professor 3', 'Class Code', 'Type', 'Section', 'Units', 'Max Enrollment', 'Enrollment', 'Waitlisted'])
 
         self.start_scrape()
     
@@ -33,6 +33,7 @@ class WebScraper(object):
         self.driver.get(self.url)
         term_select = Select(self.driver.find_element_by_xpath("/html/body/form/table/tbody/tr[1]/td[3]/select"))
         term_options = term_select.options
+        no_class = 0
         for index in range(0,len(term_options)):
             self.driver.get(self.url)
             term_select = Select(self.driver.find_element_by_xpath("/html/body/form/table/tbody/tr[1]/td[3]/select"))
@@ -49,8 +50,6 @@ class WebScraper(object):
                 given_text = given_text.split('\n')
                 if given_text[10] == '**** No courses matched your search criteria for this term.':
                     break
-                
-                no_class = 0
 
                 term = given_text[8].split('      ')[0]
                 school = given_text[13].replace('#','').strip()
@@ -87,34 +86,73 @@ class WebScraper(object):
                                 else:
                                     prof_2 = ''
                                     prof_3 = ''
-                                if len(class_block[y].strip().split('   '))<4:
+                                if len(class_block[y].strip().split('   '))<6:
                                     break 
                                 
                                 parsing = class_block[y].strip().split('   ')
-                                
                                 class_code = parsing[0].split(' ')[0]
                                 typ = parsing[0].split(' ')[1]
                                 sec = parsing[0].split(' ')[2]
-                                unit = parsing[1]
+                                unit = parsing[1].split(' ')[0]
                                 prof_1 = parsing[2].split(' ')
-                                prof_1 = [e for e in prof_1 if ',' in e or '.' in e]
+                                prof_1 = [e for e in prof_1 if ',' in e or '.' in e or 'STAFF'==e]
                                 prof_1 = (' ').join(prof_1)
-                                
+                               
+                                if not unit.isdigit():
+                                    if parsing[0].split(' ')[-1].isdigit():
+                                        unit = parsing[0].split(' ')[-1]
+                                        prof_1 = parsing[1].split(' ')
+                                        prof_1 = [e for e in prof_1 if ',' in e or '.' in e or 'STAFF'==e]
+                                        prof_1 = (' ').join(prof_1)
+                                    elif len(parsing[1])>2 and (parsing[1][1]=='.' or parsing[1][1]=='-'):
+                                        unit = parsing[1].split(' ')[0]
+                                        prof_1 = parsing[1].split(' ')[1:]
+                                        prof_1 = [e for e in prof_1 if ',' in e or '.' in e or 'STAFF'==e]
+                                        prof_1 = (' ').join(prof_1)
+                                    elif len(parsing[1])>3 and (parsing[1][2]=='.' or parsing[1][2]=='-'):
+                                        unit = parsing[1].split(' ')[0]
+                                        prof_1 = parsing[1].split(' ')[1:]
+                                        prof_1 = [e for e in prof_1 if ',' in e or '.' in e or 'STAFF'==e]
+                                        prof_1 = (' ').join(prof_1)
+                                    elif len(parsing[0].split(' '))>3 and parsing[0].split(' ')[4].replace('-','').replace('.','').isdigit():
+                                        unit = parsing[0].split(' ')[4]
+                                        prof_1 = parsing[0].split(' ')[5:]
+                                        prof_1 = [e for e in prof_1 if ',' in e or '.' in e or 'STAFF'==e]
+                                        if not ('.' in prof_1[-1]):
+                                            prof_1 = prof_1[1:-1]
+                                        prof_1 = (' ').join(prof_1)
+                                    elif len(parsing[0].split(' '))>3 and parsing[0].split(' ')[3].replace('-','').replace('.','').isdigit():
+                                        unit = parsing[0].split(' ')[3]
+                                        prof_1 = parsing[0].split(' ')[4:]
+                                        prof_1 = [e for e in prof_1 if ',' in e or '.' in e or 'STAFF'==e]
+                                        if not ('.' in prof_1[-1]):
+                                            prof_1 = prof_1[1:-1]
+                                        prof_1 = (' ').join(prof_1)                                    
+                                    else:
+                                        print(parsing)
+
                                 parsing = class_block[y].strip().split(' ')
-                                parsing = [e for e in parsing if e.isdigit() or e=='n/a']
-                                digit_index = [i for i, s in enumerate(parsing) if s.isdigit() or s=='n/a']
-                            
-                                max_enrollment = parsing[digit_index[-5]]
-                                enrolled = parsing[digit_index[-4]]
-                                waitlisted = parsing[digit_index[-3]]
+                                listlist = [e for e in parsing if e.replace('/','').isdigit() or e=='n/a']
+
+                                if 'WL' in body[i]:
+                                    max_enrollment = listlist[-5]
+                                    enrolled = listlist[-4].split('/')[0]
+                                    waitlisted = listlist[-3]
+                                else:
+                                    max_enrollment = listlist[-3]
+                                    enrolled = listlist[-2].split('/')[0]
+                                    waitlisted = ''
                             
                                 row = [term, school, dept, class_name, prof_1, prof_2, prof_3, class_code, typ, sec, unit, max_enrollment, enrolled, waitlisted]
-
-                                print(row)
+                                row = pd.Series(row, index = self.df.columns)
+                                self.df = self.df.append(row, ignore_index=True)
                 
-                # print(no_class)
+                no_class += int([e for e in body if 'Total Classes Displayed' in e][0].replace('*** Total Classes Displayed: ',''))
+                # print(self.df)
+                # print(no_class)  
                 self.driver.back()
-                
+           
+
             self.df.to_csv('/Users/iggy1212 1/Desktop/Research/WageDetermination/outputs/irvine_scrape.csv', index=False)
 
         self.driver.close()

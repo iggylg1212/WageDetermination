@@ -36,9 +36,11 @@ data['field'] = data['field'].astype(str)
 data['name'] = data['name'].apply(lambda x: x.split(' '))
 data['name'] = data['name'].apply(lambda x: [e for e in x if len(e.replace('.',''))>1])
 data['name'] = data['name'].apply(lambda x: (' ').join(x))
-data = data.drop_duplicates()
-data.to_csv('ok.csv')
-data = data[1568:]
+data = data.drop_duplicates().reset_index()
+data.to_csv('ok.csv', index=False)
+
+index = pickle.load(open("index.p",'rb'))
+data = data[index+1:]
 
 pytrends = TrendReq(hl='en-US',tz=360)
 
@@ -61,9 +63,12 @@ t.set_options()
 # t.create_anchorbank()
 t.set_active_gtab("google_anchorbank_geo=_timeframe=2004-01-01 2021-07-01.tsv")
 
+
+# settings = initialize_VPN() 
 ##### Find Term / Query Anchor Bank
 for index,row in data.iterrows():
-    
+    print(index)
+    pickle.dump(index, open("index.p", "wb" ))
     nq_res = pd.DataFrame()
     if row['field'] != 'nan':
         suggestions = pytrends.suggestions(row['name'])
@@ -77,11 +82,20 @@ for index,row in data.iterrows():
         if sug_score > .5:
             print(row['field'], hi_sug['type'])
             nq_res = t.new_query(hi_sug['mid'])
-            nq_res['name'] = row['name']
-            nq_res['term'] = hi_sug['mid']
-            nq_res['index'] = row['index']
-            nq_res = nq_res.reset_index()
-            trends = pd.concat([trends, nq_res])
+            if isinstance(nq_res, int) or (nq_res is None):
+                nq_res = pd.DataFrame(columns=['date','max_ratio',	'max_ratio_hi',	'max_ratio_lo',	'name',	'term','index'])
+                nq_res['date'] = pd.date_range(start='2004-01-01', end='2021-07-31', freq='M')
+                nq_res['name'] = row['name']
+                nq_res['term'] = ''
+                nq_res['index'] = row['index']
+                nq_res = nq_res.fillna(0)
+                trends = pd.concat([trends, nq_res])
+            else:
+                nq_res['name'] = row['name']
+                nq_res['term'] = hi_sug['mid']
+                nq_res['index'] = row['index']
+                nq_res = nq_res.reset_index()
+                trends = pd.concat([trends, nq_res])
     if nq_res.empty:
         nq_res = t.new_query(row['name'])
         if isinstance(nq_res, int) or (nq_res is None):
@@ -101,4 +115,4 @@ for index,row in data.iterrows():
     
     trends = trends.drop_duplicates()
     trends.to_csv('/Users/iggy1212 1/Desktop/Research/WageDetermination/outputs/google_trends.csv', index=False)
-    print(index)
+

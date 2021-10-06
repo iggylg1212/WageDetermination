@@ -3,3 +3,11 @@
 /outputs/irvine_scrape.csv filter=lfs diff=lfs merge=lfs -text
 /scripts/AB/data/internal/google_results/google_results_geo=_timeframe=2004-01-01[[:space:]]2021-07-01.pkl filter=lfs diff=lfs merge=lfs -text
 /scripts/AB/logs/log_geo=_timeframe=2004-01-01[[:space:]]2021-07-01.txt filter=lfs diff=lfs merge=lfs -text
+/data/illinois.csv filter=lfs diff=lfs merge=lfs -text
+/data/michigan.csv filter=lfs diff=lfs merge=lfs -text
+/data/texas.csv filter=lfs diff=lfs merge=lfs -text
+/data/uc.csv filter=lfs diff=lfs merge=lfs -text
+/outputs/berkeley_econ.csv filter=lfs diff=lfs merge=lfs -text
+/outputs/google_trends.csv filter=lfs diff=lfs merge=lfs -text
+/outputs/merced_scrape.csv filter=lfs diff=lfs merge=lfs -text
+/outputs/twitter_timeline.csv filter=lfs diff=lfs merge=lfs -text

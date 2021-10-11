@@ -68,7 +68,6 @@ t.set_active_gtab("google_anchorbank_geo=_timeframe=2004-01-01 2021-07-01.tsv")
 ##### Find Term / Query Anchor Bank
 for index,row in data.iterrows():
     print(index)
-    pickle.dump(index, open("index.p", "wb" ))
     nq_res = pd.DataFrame()
     if row['field'] != 'nan':
         suggestions = pytrends.suggestions(row['name'])
@@ -112,6 +111,8 @@ for index,row in data.iterrows():
             nq_res['index'] = row['index']
             nq_res = nq_res.reset_index()
             trends = pd.concat([trends, nq_res])
+    
+    pickle.dump(index, open("index.p", "wb" ))
     
     trends = trends.drop_duplicates()
     trends.to_csv('/Users/iggy1212 1/Desktop/Research/WageDetermination/outputs/google_trends.csv', index=False)

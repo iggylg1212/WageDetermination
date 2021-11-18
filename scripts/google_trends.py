@@ -39,7 +39,7 @@ data['name'] = data['name'].apply(lambda x: (' ').join(x))
 data = data.drop_duplicates().reset_index()
 data.to_csv('ok.csv', index=False)
 
-index = pickle.load(open("index.p",'rb'))
+index = pickle.load(open("/Users/iggy1212 1/Desktop/Research/WageDetermination/index.p",'rb'))
 data = data[index+1:]
 
 pytrends = TrendReq(hl='en-US',tz=360)
@@ -62,7 +62,6 @@ t.set_options()
 # t.set_options(pytrends_config={"geo": "", "timeframe": "2004-01-01 2021-07-01"}) 
 # t.create_anchorbank()
 t.set_active_gtab("google_anchorbank_geo=_timeframe=2004-01-01 2021-07-01.tsv")
-
 
 # settings = initialize_VPN() 
 ##### Find Term / Query Anchor Bank
@@ -112,7 +111,7 @@ for index,row in data.iterrows():
             nq_res = nq_res.reset_index()
             trends = pd.concat([trends, nq_res])
     
-    pickle.dump(index, open("index.p", "wb" ))
+    pickle.dump(index, open("/Users/iggy1212 1/Desktop/Research/WageDetermination/index.p", "wb" ))
     
     trends = trends.drop_duplicates()
     trends.to_csv('/Users/iggy1212 1/Desktop/Research/WageDetermination/outputs/google_trends.csv', index=False)
